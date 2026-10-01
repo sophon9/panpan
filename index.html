@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="description" content="เกมฝึกคณิตศาสตร์ ป.3–ป.4: คูณ หาร เศษส่วน ทศนิยม" />
+  <meta name="theme-color" content="#ff6b4a" />
+  <title>คณิตสนุก ป.3–ป.4 | เกมฝึกคณิตศาสตร์</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧮</text></svg>" />
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">
+        <div class="logo-icon" aria-hidden="true">🧮</div>
+        <div>
+          <h1>คณิตสนุก</h1>
+          <div class="subtitle">ป.3 – ป.4 · เทอม 2</div>
+        </div>
+      </div>
+      <div class="header-stats">
+        <div class="stat-pill" title="ดาวสะสม"><span class="icon">⭐</span> <span id="statStars">0</span></div>
+        <div class="stat-pill" title="คะแนนรวม"><span class="icon">🏅</span> <span id="statPoints">0</span></div>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="icon-btn" id="soundBtn" title="เสียง" aria-label="เปิดปิดเสียง">🔊</button>
+        <button type="button" class="icon-btn" id="helpBtn" title="วิธีเล่น" aria-label="วิธีเล่น">❓</button>
+      </div>
+    </header>
+
+    <!-- HOME -->
+    <section class="screen active" data-screen="home" id="screenHome">
+      <div class="hero">
+        <h2>มาเล่นคณิตกันเถอะ! 🎮</h2>
+        <p>เลือกชั้น ปี ความยาก แล้วเลือกเกมที่ชอบ</p>
+      </div>
+
+      <div class="setup-card">
+        <div class="setup-row">
+          <span class="setup-label">📚 ชั้นปี</span>
+          <div class="chip-group">
+            <button type="button" class="chip grade-p3" data-grade="p3">ป.3</button>
+            <button type="button" class="chip grade-p4" data-grade="p4">ป.4</button>
+          </div>
+        </div>
+        <div class="setup-row">
+          <span class="setup-label">🎚️ ความยาก</span>
+          <div class="chip-group">
+            <button type="button" class="chip diff-easy" data-diff="easy">ง่าย</button>
+            <button type="button" class="chip" data-diff="medium">ปานกลาง</button>
+            <button type="button" class="chip diff-hard" data-diff="hard">ยาก</button>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="modes-title">🎲 เลือกเกม</h3>
+      <div class="modes-grid" id="modesGrid"></div>
+
+      <div class="progress-panel">
+        <h3>📊 ความคืบหน้าของฉัน</h3>
+        <div class="progress-bars" id="progressBars"></div>
+      </div>
+    </section>
+
+    <!-- GAME -->
+    <section class="screen" data-screen="game" id="screenGame">
+      <div class="game-top">
+        <button type="button" class="btn-back" id="btnBackHome">← กลับ</button>
+        <strong id="gameTitle" style="font-family:var(--font-display)">เกม</strong>
+        <div class="game-hud">
+          <div class="hud-item" id="hudScore">⭐ 0</div>
+          <div class="hud-item" id="hudStreak">🔥 0</div>
+          <div class="hud-item" id="hudProgress">0/10</div>
+          <div class="hud-item timer" id="hudTimer" style="display:none">⏱️ 15</div>
+        </div>
+      </div>
+
+      <div class="question-card" id="questionCard">
+        <span class="q-badge" id="qBadge">ข้อ 1/10</span>
+        <div class="q-prompt" id="qPrompt">คำถาม</div>
+        <div id="qExpression"></div>
+        <div class="q-visual" id="qVisual"></div>
+        <div class="answer-area" id="answerArea"></div>
+        <div id="feedbackBox" class="feedback" style="display:none"></div>
+      </div>
+
+      <div class="game-actions" id="nextBtnWrap" style="display:none">
+        <button type="button" class="btn-primary" id="btnNext">ข้อต่อไป →</button>
+      </div>
+    </section>
+
+    <!-- RESULT -->
+    <section class="screen" data-screen="result" id="screenResult">
+      <div class="result-card">
+        <span class="result-emoji" id="resultEmoji">🌟</span>
+        <h2 id="resultTitle">เก่งมาก!</h2>
+        <p style="color:var(--text-muted)">โหมด <strong id="resultModeLabel"></strong></p>
+        <div class="result-score" id="resultScore">0</div>
+        <div style="color:var(--text-muted);font-weight:600">คะแนน</div>
+        <div class="result-stars" id="resultStars">★★★</div>
+        <div id="resultHigh"></div>
+        <div class="result-stats">
+          <div class="result-stat">
+            <div class="val" id="resultCorrect" style="color:var(--success)">0</div>
+            <div class="lbl">ถูก</div>
+          </div>
+          <div class="result-stat">
+            <div class="val" id="resultWrong" style="color:var(--error)">0</div>
+            <div class="lbl">ผิด</div>
+          </div>
+          <div class="result-stat">
+            <div class="val" id="resultStreak" style="color:var(--orange)">0</div>
+            <div class="lbl">สตรีคสูงสุด</div>
+          </div>
+        </div>
+        <div class="game-actions">
+          <button type="button" class="btn-primary" id="btnPlayAgain">เล่นอีกครั้ง 🔄</button>
+          <button type="button" class="btn-secondary" id="btnResultHome">หน้าหลัก</button>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      สร้างเพื่อฝึกคณิตศาสตร์ ป.3–ป.4 · ทำงานออฟไลน์ได้ · บันทึกคะแนนในเครื่อง
+    </footer>
+  </div>
+
+  <!-- Help Modal -->
+  <div class="modal-overlay" id="helpModal" role="dialog" aria-labelledby="helpTitle">
+    <div class="modal">
+      <h2 id="helpTitle">❓ วิธีเล่น</h2>
+      <p><strong>1.</strong> เลือกชั้นปี (ป.3 หรือ ป.4) และความยาก</p>
+      <p><strong>2.</strong> เลือกเกมที่อยากฝึก — แต่ละรอบมี 10 ข้อ</p>
+      <p><strong>3.</strong> ตอบถูกได้คะแนน + สตรีคต่อเนื่องได้โบนัส</p>
+      <p><strong>4.</strong> ถ้าตอบผิด จะมีคำอธิบายสั้น ๆ ให้เรียน</p>
+      <p><strong>5.</strong> ได้ดาวตามความแม่นยำ: 50%★ 70%★★ 90%★★★</p>
+      <p style="margin-top:0.75rem"><strong>โหมดเกม</strong></p>
+      <p>⚡ คูณเร็ว — สูตรคูณ / คูณเลข (มีจับเวลา)</p>
+      <p>🎯 หารแม่น — หารลงตัวและมีเศษ</p>
+      <p>🍕 เศษส่วนสนุก — อ่าน เทียบ บวกลบ พร้อมแถบสี</p>
+      <p>🔍 ทศนิยมนักสืบ — ค่าประจำหลัก เทียบ บวกลบ</p>
+      <p>🌟 ท้าทายรวม — ปลดล็อกเมื่อเล่นโหมดอื่นครบ</p>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="resetProgressBtn">ล้างคะแนน</button>
+        <button type="button" class="btn-primary" id="helpClose">เข้าใจแล้ว!</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/questions.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
