@@ -641,6 +641,11 @@
     state.sound = progress.settings?.sound !== false;
     state.grade = progress.settings?.grade || "p3";
     state.difficulty = progress.settings?.difficulty || "medium";
+    // map any legacy 'easy' difficulty to 'medium' (ระดับ 1)
+    if (state.difficulty === "easy") {
+      state.difficulty = "medium";
+      saveProgress();
+    }
 
     // grade chips
     $$("[data-grade]").forEach((c) => {
