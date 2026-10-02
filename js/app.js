@@ -227,6 +227,15 @@
       total: QUESTIONS_PER_ROUND,
       timed: mode === "mul" || mode === "mix",
     };
+    // Optional server logging
+    if (window.Stats && typeof window.Stats.logRoundStart === "function") {
+      window.Stats.logRoundStart({
+        mode,
+        grade: state.grade,
+        difficulty: state.difficulty,
+        timed: state.round.timed,
+      });
+    }
     state.answered = false;
     state.inputBuffer = "";
     showScreen("game");
@@ -589,6 +598,23 @@
     }
 
     saveProgress();
+    // Optional server logging
+    if (window.Stats && typeof window.Stats.logRoundEnd === "function") {
+      window.Stats.logRoundEnd({
+        mode,
+        grade: state.grade,
+        difficulty: state.difficulty,
+        score: r.score,
+        correct: r.correct,
+        wrong: r.wrong,
+        bestStreak: r.bestStreak,
+        total: r.total,
+        accuracy: Math.round(accuracy * 100) / 100,
+        starsEarned: earned,
+        totalPoints: progress.totalPoints,
+        totalStars: progress.totalStars,
+      });
+    }
     soundLevelUp();
     if (earned >= 2) spawnConfetti();
 

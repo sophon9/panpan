@@ -53,7 +53,7 @@ http://localhost:8080
 ## การตั้งค่า
 
 - **ชั้นปี:** ป.3 / ป.4 — ปรับช่วงตัวเลขให้เหมาะกับระดับ
-- **ความยาก:** ง่าย / ปานกลาง / ยาก
+- **ความยาก:** ระดับ 1 (ปานกลาง) / ระดับ 2 (ยาก)
 - **เสียง:** กดปุ่ม 🔊 เพื่อเปิด/ปิดเสียงเอฟเฟกต์
 - **ดาว:** ได้ตามความแม่นยำ (≥50% ★, ≥70% ★★, ≥90% ★★★)
 - **สตรีค:** ตอบถูกติดกันได้โบนัสคะแนน
@@ -86,3 +86,40 @@ math-practice-p34/
 - กด ❓ → **ล้างคะแนน** หากต้องการเริ่มสะสมใหม่
 
 สนุกกับการฝึกคณิตนะ! ⭐
+
+---
+
+## บันทึกสถิติฝั่งเซิร์ฟเวอร์ (ตัวเลือกเพิ่มเติม)
+
+ค่าเริ่มต้น เกมจะเก็บคะแนนและดาวไว้ใน `localStorage` เท่านั้น หากต้องการเก็บสถิติการเล่นแต่ละรอบขึ้นเซิร์ฟเวอร์:
+
+1) เตรียมปลายทางรับ HTTP POST (JSON) ของคุณ  
+ตัวอย่าง Cloudflare Worker (ต่อยอดบันทึกลง DB ได้):
+
+```js
+export default {
+  async fetch(request, env) {
+    if (request.method !== "POST") return new Response("OK");
+    const data = await request.json().catch(() => null);
+    console.log("round event:", data);
+    return new Response("OK");
+  }
+}
+```
+
+2) ตั้งค่า URL ปลายทางในไฟล์ `js/config.js`
+
+```js
+window.STATS_ENDPOINT = "https://your-worker.example.com/ingest";
+// (ตัวเลือก) หากต้องการ Authorization header:
+// window.STATS_AUTH = "your-public-or-short-lived-token";
+```
+
+เมื่อเปิดใช้งานแล้ว แอปจะส่งเหตุการณ์:
+- `round_start` เมื่อเริ่มรอบใหม่
+- `round_end` เมื่อจบรอบ (มีคะแนน/จำนวนถูกผิด/ดาวที่ได้ ฯลฯ)
+
+หมายเหตุ:
+- ถ้า `STATS_ENDPOINT` เว้นว่างไว้ ระบบจะไม่ส่งอะไร (ไม่มีผลกับเกม)
+- ใช้ `navigator.sendBeacon` ถ้ามี หรือ `fetch` พร้อม `keepalive: true`
+- ไม่มีข้อมูลส่วนบุคคล (PII) — ใช้ `deviceId` แบบสุ่มในเครื่องเท่านั้น
