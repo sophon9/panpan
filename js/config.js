@@ -5,3 +5,10 @@
 window.STATS_ENDPOINT = "";
 // window.STATS_AUTH = "";
 
+// Optional Cloud Progress Sync API (GET/PUT) — leave blank to disable
+// Expected endpoints (CORS enabled):
+//   GET  {BASE}/progress/{playerId} -> 200 {progressJson} or 404
+//   PUT  {BASE}/progress/{playerId} body: {progressJson} -> 200/204
+window.PROGRESS_BASE_URL = "";
+// window.PROGRESS_AUTH = "";
+

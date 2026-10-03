@@ -123,3 +123,55 @@ window.STATS_ENDPOINT = "https://your-worker.example.com/ingest";
 - ถ้า `STATS_ENDPOINT` เว้นว่างไว้ ระบบจะไม่ส่งอะไร (ไม่มีผลกับเกม)
 - ใช้ `navigator.sendBeacon` ถ้ามี หรือ `fetch` พร้อม `keepalive: true`
 - ไม่มีข้อมูลส่วนบุคคล (PII) — ใช้ `deviceId` แบบสุ่มในเครื่องเท่านั้น
+
+---
+
+## ซิงก์ความคืบหน้าข้ามอุปกรณ์ให้ “ถาวร” (ตัวเลือกเพิ่มเติม)
+
+นอกจากบันทึกเหตุการณ์ (Stats) คุณสามารถเปิด “ซิงก์ความคืบหน้า” เพื่อให้คะแนน/ดาว/สถิติของผู้เล่นตามไปด้วยในทุกอุปกรณ์
+
+1) ทำปลายทาง API สำหรับ Progress (ต้องเปิด CORS):
+   - `GET  /progress/{playerId}` → คืน JSON ความคืบหน้าหรือ 404 ถ้ายังไม่มี
+   - `PUT  /progress/{playerId}` → รับ JSON แล้วบันทึก
+
+ตัวอย่าง Cloudflare Worker + KV:
+
+```js
+export default {
+  async fetch(req, env) {
+    const url = new URL(req.url);
+    const m = url.pathname.match(/^\/progress\/([A-Z0-9-_.]{6,})$/);
+    if (!m) return new Response("Not Found", { status: 404 });
+    const id = m[1];
+    const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Content-Type, Authorization", "Access-Control-Allow-Methods": "GET,PUT,OPTIONS" };
+    if (req.method === "OPTIONS") return new Response("", { headers: cors });
+    if (req.method === "GET") {
+      const v = await env.PROGRESS.get(id);
+      return v ? new Response(v, { headers: { "Content-Type": "application/json", ...cors } }) : new Response("Not Found", { status: 404, headers: cors });
+    }
+    if (req.method === "PUT") {
+      const body = await req.text();
+      // (เลือกทำ) validate/limit size
+      await env.PROGRESS.put(id, body, { expirationTtl: 0 });
+      return new Response("OK", { headers: cors });
+    }
+    return new Response("Method Not Allowed", { status: 405, headers: cors });
+  }
+}
+```
+
+2) ตั้งค่าใน `js/config.js`:
+
+```js
+window.PROGRESS_BASE_URL = "https://your-endpoint.example.com";
+// (ตัวเลือก) ถ้าต้องการ Authorization:
+// window.PROGRESS_AUTH = "your-public-or-short-lived-token";
+```
+
+3) การเชื่อมหลายอุปกรณ์:
+   - ระบบจะสร้าง `playerId` อัตโนมัติและซิงก์ขึ้นเซิร์ฟเวอร์หลังบันทึกความคืบหน้า
+   - บนอุปกรณ์เครื่องใหม่ ใส่พารามิเตอร์ `?pid=รหัสของคุณ` ต่อท้าย URL เพื่อผูกกับบัญชีเดิม เช่น  
+     `https://sophon9.github.io/panpan/?pid=ABCD2345XY`
+   - หลังจากนั้นความคืบหน้าจะถูกโหลดลงเครื่องใหม่และถูกซิงก์อัตโนมัติ
+
+หมายเหตุ: ถ้าไม่ตั้งค่า `PROGRESS_BASE_URL` เกมจะทำงานแบบเดิม (เก็บเฉพาะในเครื่อง)

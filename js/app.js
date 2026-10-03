@@ -47,6 +47,7 @@
       played: { mul: 0, div: 0, frac: 0, dec: 0, mix: 0 },
       unlocked: { mul: true, div: true, frac: true, dec: true, mix: false },
       settings: { sound: true, grade: "p3", difficulty: "medium" },
+      updatedAt: 0,
     };
   }
 
@@ -67,8 +68,14 @@
       difficulty: state.difficulty,
     };
     try {
+      progress.updatedAt = Date.now();
       localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
     } catch (_) { /* ignore */ }
+    // Optional cloud sync
+    if (window.ProgressSync && window.ProgressSync.isEnabled && window.ProgressSync.isEnabled()) {
+      const pid = window.ProgressSync.getOrCreatePlayerId();
+      window.ProgressSync.push(pid, progress);
+    }
   }
 
   /* ---------- Sound (Web Audio beeps — no files needed) ---------- */
@@ -728,6 +735,34 @@
     });
 
     renderHome();
+    // After first render, try pulling cloud progress (if configured)
+    if (window.ProgressSync && window.ProgressSync.isEnabled && window.ProgressSync.isEnabled()) {
+      const pid = window.ProgressSync.getOrCreatePlayerId();
+      window.ProgressSync.fetch(pid).then((remote) => {
+        if (remote && typeof remote === "object" && (remote.totalPoints !== undefined || remote.updatedAt)) {
+          // If remote seems newer or simply exists, prefer remote
+          const localUpdated = progress.updatedAt || 0;
+          const remoteUpdated = remote.updatedAt || 0;
+          if (remoteUpdated >= localUpdated) {
+            progress = { ...defaultProgress(), ...remote };
+            // ensure necessary sub-objects exist
+            progress.highScores = { ...defaultProgress().highScores, ...progress.highScores };
+            progress.stars = { ...defaultProgress().stars, ...progress.stars };
+            progress.played = { ...defaultProgress().played, ...progress.played };
+            progress.unlocked = { ...defaultProgress().unlocked, ...progress.unlocked };
+            progress.settings = { ...defaultProgress().settings, ...progress.settings };
+            saveProgress();
+            renderHome();
+          } else {
+            // local is newer: push it up
+            window.ProgressSync.push(pid, progress);
+          }
+        } else {
+          // initialize remote with local snapshot
+          window.ProgressSync.push(pid, progress);
+        }
+      }).catch(() => { /* ignore */ });
+    }
   }
 
   if (document.readyState === "loading") {
